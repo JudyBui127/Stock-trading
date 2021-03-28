@@ -1,11 +1,67 @@
+# STOCK TRADING BACKEND API
+- Github Repo: https://github.com/JudyBui127/stock-trading
+## HOW TO RUN
+### 1. Set up environment
+- Create a config.js file to '/' main project folder, paste this code to config.js (this is a demo database)
+```
+let HOST = process.env.HOST || "localhost";
+let PORT = process.env.PORT || 81;
+module.exports={
+    MONGO_URI:`mongodb+srv://judy127:judy127asdf@cluster0.cfgze.mongodb.net/STOCKMARKET?retryWrites=true&w=majority`,
+    secretString: 'secretjudy12345',
+    HOST,
+    PORT}
+    
+ 
+```
+- Run npm
+``` 
+npm install
+```
+### 2. Run server
+```
+nodemon server.js
+```
+### 3. Test APIs on Postman
+- Import this json file to Postman: CHATTER.postman_collection.json (found in this project folder)
+- Test API requests and responses as following 
 ## APIs
-## I. USER
-### 1. Login
-    [POST] /api/user/login
-### 2. Register
-    [POST] /api/user/register
-### 3. Show user porfolio
-#### [GET] /api/user/:id
+### I. JWT Token Authentication
+- middleware.js
+- Check for token in request header 'Authorization' to verify valid login sesson of user before create, update, delete tweets.
+
+### II. USER
+###  [POST] /api/user/login
+-Response:
+``` 
+{
+    "status": 200,
+    "message": "Successfully logged in!",
+    "data": {
+        "dataUser": {
+            "id": string,
+            "username": string
+        },
+        "token": string
+    }
+} 
+```
+### [POST] /api/user/register
+```
+{
+    "status": 201,
+    "message": "Register successful!",
+    "data": {
+        "user": {
+            "id": string,
+            "username": string
+        }
+    }
+}
+```
+
+## III.  User Portfolio
+### [GET] /api/user/:id
 - Response:
     ```
     {
@@ -18,24 +74,25 @@
                     currency: string,
                     balance: float
                 }],
-                stocks: [{
-                    id: string,
-                    symbol: string,
-                    quantity: interger
-                }]
+            stocks: [{
+                id: string,
+                symbol: string,
+                quantity: integer
+            }]
         }
     }
     ```
-## II. User Wallet APIs
+## IV. User Wallet
 * Each wallet should has:
-    * type: 'fiat' or 'stock'
+    * wallet_type: 'fiat' or 'stock'
     * unique currency ('usd', 'cad', 'vnd', 'jpy'...)
     * unique stock symbol ('AAPL', 'IBM', 'TSLA' ...)
 ### 1. Create User Wallet
-#### [POST] /api/wallet?type='fiat'
+### [POST] /api/wallet/create
 - Request params:
     ```
     {
+        wallet_type: 'fiat',
         user_id: string,
         currency: string
     }
@@ -47,7 +104,7 @@
         message: "Created fiat wallet successfully!"
         data: {
             id: string,
-            type: 'fiat',
+            wallet_type: 'fiat',
             owner_id: string,
             currency: string,
             balance: float, // default: 0
@@ -55,12 +112,13 @@
 
     }
     ```
-#### [POST] /api/wallet?type='stock'
+### [POST] /api/wallet/create
 - Request params:
     ```
     {
+        wallet_type: 'stock',
         user_id: string,
-        symbol: string
+        symbol: string,
     }
     ```
 - Successfull response:
@@ -71,22 +129,21 @@
         data: {
             id: string,
             owner_id: string,
-            type: 'stock',
-            stock: {
-                id: string,
-                symbol: string,
-                quantity: interger, // default: 0
+            wallet_type: 'stock',
+            stock: string,
+            symbol: string,
+            quantity: integer, // default: 0
             }
         }
     }
     ```
-### 2. Update User Wallet
-#### 3.1 Deposit fiat balance 
-#### [UPDATE] /api/wallet/:id
+### 2. Add balance/quantity Wallet
+### 2.1 Deposit fiat balance 
+### [PUT] /api/wallet/deposit/:id
 - Request Params:
     ```
     {
-        type: 'fiat',
+        wallet_type: 'fiat',
         currency: string,
         quantity: float
     }
@@ -99,19 +156,19 @@
         data: {
             id: string,
             owner_id: string,
-            type: 'fiat',
+            wallet_type: 'fiat',
             currency: string,
             balance: float
         }
 
     }
     ```
-#### 3.2 Update Stock balance 
-#### [POST] /api/wallet/:id
+### 2.2 Deposit Stock balance 
+### [POST] /api/wallet/deposit/:id
 - Request Params:
     ```
     {
-        type: 'stock',
+        wallet_type: 'stock',
         stock_id: string,
         quantity: float
     }
@@ -124,26 +181,25 @@
         data: {
             id: string,
             owner_id: string,
-            type: 'stock',
-            stock: {
-                id: string,
-                symbol: string,
-                quantity: interger
+            wallet_type: 'stock',
+            stock: string,
+            symbol: string,
+            quantity: integer
             }
         }
 
     }
     ```
-### 4. Add buy/sell shares
-#### [POST] /api/wallet/:id
+## V. Add BUY/SELL Shares
+### [POST] /api/stock/shares/add
 - Request params:
     ```
     {
-        type: 'stock',
+        wallet_id: string,
         order_type: string, // 'BUY' | 'SELL'
-        quantity: interger,
+        quantity: integer,
         price: float,
-        currency: string,
+        fiat_wallet_id: string,
     }
     ```
 
@@ -159,17 +215,28 @@
                     currency: string,
                     balance: float
                 }],
-                stocks: [{
-                    id: string,
-                    symbol: string,
-                    quantity: interger
-                }]
+            stocks: [{
+                id: string,
+                symbol: string,
+                quantity: integer
+            }]
         }
     }
     ```
-## III. Stock APIs
-### 1. Show all stock info
-#### [GET] /api/stocks
+## VI. Stock Price
+Shortcut meaning
+> o: open price
+> c: close price
+> h: high price
+> l: low price
+### 1. Create stock
+### [POST] /api/stock/create
+- Request params:
+    ```
+    {
+        symbol: string,
+    }
+    ```
 - Successful response:
     ```
     {
@@ -178,7 +245,8 @@
         data: [{
             id: string,
             symbol: string,
-            time: string,
+            company_name: string,
+            refreshed_time: string,
             time_zone: string,
             interval: string,
             currency: string,
@@ -188,32 +256,11 @@
             l: float
         }]
     }
-    ```
-### 2. Get stocks info
-#### [GET] /api/stock/:id
-- Response:
-    ```
-    {
-        status: 200,
-        message: 'Successful!',
-        data: {
-            id: string,
-            symbol: string,
-            time: string,
-            time_zone: string,
-            interval: string,
-            currency: string,
-            o: float,
-            c: float,
-            h: float,
-            l: float
-        }
-    }
-    ```
-### 3. Update stock price info
+    ````   ```
+### 2. Update stock price info
 > This API should be run by a scheduled cron job
 > INTRADAY INFO will be fetch from this source: [alphavantage](https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=TSLA&interval=5min&outputsize=full&apikey=AKWEU271H5V6USY4)
-#### [UPDATE] /api/stocks/:id
+### [UPDATE] /api/stocks/:id
 - Request:
     ```
     {
