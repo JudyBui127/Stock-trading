@@ -1,16 +1,10 @@
 const mongoose = require("mongoose");
-const jwt = require('jsonwebtoken');
-// let path = require("path");
-let config = require('../config');
 const Stock = require("../models/stock");
 const Wallet = require("../models/wallet");
 
 module.exports = {
     createWallet,
-    // updateTweet,
-    // readAllTweet,
-    // readTweet,
-    // deleteTweet
+    depositWallet
 };
 const STATUS_CODE = {
     SUCCESS_ALL: { status: 200, message: "Success!" },
@@ -32,6 +26,18 @@ function createWallet(req, res) {
         .catch(err => handleException(err, res))
 }
 
+function depositWallet(req, res) {
+    const validParams = validateUpdateWalletParams(req);
+    if (!validParams) res.send(STATUS_CODE.BAD_REQUEST);
+    const { wallet_type, currency, quantity, stock_id } = req.body;
+    const { id } = req.params;
+    const params = { id, wallet_type, currency, quantity, stock_id }
+    console.log(params);
+    depositWalletBalance(params)
+        .then(data => res.send(data))
+        .catch(err => handleException(err, res))
+}
+
 
 //HELPER FUNCTIONS
 
@@ -39,10 +45,29 @@ function handleException(error, res) {
     console.log(error.message)
     res.send(STATUS_CODE.INTERNAL_ERROR)
 }
+async function depositWalletBalance({ id, wallet_type, currency, quantity, stock_id }) { 
+    const wallet = await Wallet.findById(id);
+    if (!wallet) return STATUS_CODE.NOT_FOUND;
+    quantity = Number(quantity);
+    if (wallet_type === 'fiat') {
+        if (wallet.currency !== currency) return STATUS_CODE.BAD_REQUEST; 
+        let newBalance = wallet.balance || 0 
+        newBalance += quantity
+        const updatedWallet = await Wallet.findByIdAndUpdate(id, {balance: newBalance}, {new: true})
+        return { ...STATUS_CODE.SUCCESS_ALL, updatedWallet }
+    } else if (wallet_type === 'stock') {
+        let newQuantity = wallet.quantity || 0 
+        newQuantity += quantity
+        const updatedWallet = await Wallet.findByIdAndUpdate(id, {quantity: newQuantity}, {new: true})
+        console.log({updatedWallet});
+        return { ...STATUS_CODE.SUCCESS_ALL, updatedWallet }
+    }
+    return STATUS_CODE.FAILED_ACTION
+}
 
 async function createStockWallet(user_id, symbol) {
     console.log(user_id, symbol)
-    const findWallet = await Wallet.find({ owner_id: user_id, symbol })
+    const findWallet = await Wallet.findOne({ owner_id: user_id, symbol })
     if (findWallet) return STATUS_CODE.WALLET_ALREADY_CREATED;
     console.log({findWallet});
     const stockRef = await findOrCreateStock(symbol);
@@ -54,11 +79,9 @@ async function createStockWallet(user_id, symbol) {
         created: Date.now(),
         updated: Date.now(),
         owner_id: user_id,
-        stock: {
-            id: stockRef.id,
-            symbol: stockRef.symbol,
-            quantity: 0
-        }
+        stock: stockRef.id,
+        symbol: stockRef.symbol,
+        quantity: 0
     });
     const newWallet = await createWallet.save();
     console.log({ newWallet });
@@ -86,8 +109,17 @@ async function createFiatWallet(user_id, currency) {
 function validateCreateWalletParams(req) {
     const { wallet_type, user_id, currency, symbol, quantity } = req.body;
     if (!wallet_type || (wallet_type !== 'fiat' && wallet_type !== 'stock')) return false;
-    // if (wallet_type === 'fiat' && (!user_id || !currency)) return false;
-    // if (wallet_type === 'stock' && (!user_id || !symbol || !quantity)) return false;
+    if (wallet_type === 'fiat' && (!user_id || !currency)) return false;
+    if (wallet_type === 'stock' && (!user_id || !symbol)) return false;
+    return true;
+}
+
+function validateUpdateWalletParams(req) {
+    const { wallet_type, currency, quantity, stock_id } = req.body;
+    const { id } = req.params;
+    if (!wallet_type) return false;
+    if (wallet_type === 'fiat' && (!quantity || !currency)) return false;
+    if (wallet_type === 'stock' && (!quantity || !stock_id)) return false;
     return true;
 }
 async function findOrCreateStock(symbol) {
