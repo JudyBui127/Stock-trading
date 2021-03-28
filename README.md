@@ -11,7 +11,7 @@ npm install
 nodemon server.js
 ```
 ### 3. Test APIs on Postman
-- Import this json file to Postman: CHATTER.postman_collection.json (found in this project folder)
+- Import this json file to Postman: STOCK-MARKET-BACKEND.postman_collection.json (found in this project folder)
 - Test API requests and responses as following 
 ## APIs
 ### I. JWT Token Authentication
