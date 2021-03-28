@@ -10,15 +10,12 @@ const walletSchema = new mongoose.Schema({
         ref: 'User',
         type: Schema.Types.ObjectId
     },
-    currency: {
-        type: String,
-        // default: 'usd'
-    },
+    currency: String,
     balance: Number,
     stock: {
-            ref: 'Stock',
-            type: Schema.Types.ObjectId
-        },
+        ref: 'Stock',
+        type: Schema.Types.ObjectId
+    },
     symbol: String,
     quantity: Number,
     created: Date,

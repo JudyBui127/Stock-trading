@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         index: true
     },
-    wallets: [{type: Schema.Types.ObjectId, ref: 'Wallet'}],
+    wallets: [{ref: 'Wallet', type: Schema.Types.ObjectId}],
     created: Date,
     updated: Date,
 });
