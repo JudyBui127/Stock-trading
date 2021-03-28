@@ -2,18 +2,6 @@
 - Github Repo: https://github.com/JudyBui127/stock-trading
 ## HOW TO RUN
 ### 1. Set up environment
-- Create a config.js file to '/' main project folder, paste this code to config.js (this is a demo database)
-```
-let HOST = process.env.HOST || "localhost";
-let PORT = process.env.PORT || 81;
-module.exports={
-    MONGO_URI:`mongodb+srv://judy127:judy127asdf@cluster0.cfgze.mongodb.net/STOCKMARKET?retryWrites=true&w=majority`,
-    secretString: 'secretjudy12345',
-    HOST,
-    PORT}
-    
- 
-```
 - Run npm
 ``` 
 npm install
