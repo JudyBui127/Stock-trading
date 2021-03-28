@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-// let path = require("path");
 const User = require('../models/user');
 let config = require('./../config');
 const Wallet = require("../models/wallet");

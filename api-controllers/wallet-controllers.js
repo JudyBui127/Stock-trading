@@ -1,7 +1,4 @@
 const mongoose = require("mongoose");
-const jwt = require('jsonwebtoken');
-// let path = require("path");
-let config = require('../config');
 const Stock = require("../models/stock");
 const Wallet = require("../models/wallet");
 

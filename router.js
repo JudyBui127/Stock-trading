@@ -19,8 +19,5 @@ router.post('/stock/share/add',middleware.checkToken,stockController.addShares);
 
 // //STOCK
 // router.post('/stock/create',middleware.checkToken,stockController.createStock);
-// // router.get('/stock/readAll/:id',stockController.readAllstock);
-// router.get('/stock/read/:id',stockController.readstock);
-// router.put('/stock/update/:id',middleware.checkToken,stockController.updatestock);
 
 module.exports = router;
